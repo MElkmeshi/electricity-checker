@@ -20,6 +20,7 @@ describe("loadConfig", () => {
       alkafaaPassword: "account-password",
       databasePath: "./data/electricity.db",
       pollIntervalMs: 60_000,
+      webPort: 3000,
     });
   });
 

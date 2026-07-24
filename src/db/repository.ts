@@ -32,6 +32,19 @@ export class ElectricityRepository {
       .get();
   }
 
+  history(limit = 200): ElectricityObservation[] {
+    const rows = this.database
+      .select({
+        isOn: electricityEvents.isOn,
+        observedAt: electricityEvents.observedAt,
+      })
+      .from(electricityEvents)
+      .orderBy(desc(electricityEvents.id))
+      .limit(limit)
+      .all();
+    return rows.reverse();
+  }
+
   record(isOn: boolean, observedAt: Date): void {
     this.database.insert(electricityEvents).values({ isOn, observedAt }).run();
   }

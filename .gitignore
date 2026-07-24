@@ -5,3 +5,5 @@ dist/
 *.db-shm
 *.db-wal
 .playwright-mcp/
+web/node_modules/
+web/dist/

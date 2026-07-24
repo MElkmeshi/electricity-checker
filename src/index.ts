@@ -1,10 +1,12 @@
 import "dotenv/config";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { Telegraf } from "telegraf";
 import { AlkafaaClient } from "./alkafaa-client.js";
+import { createApi } from "./api/server.js";
 import { loadConfig } from "./config.js";
 import { ElectricityRepository } from "./db/repository.js";
 import { formatStatus, formatTransition } from "./messages.js";
@@ -64,10 +66,19 @@ bot.catch((error) => {
   console.error("Telegram bot error:", error);
 });
 
+const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../web/dist");
+const webServer = createApi({ repository, monitor, webRoot }).listen(
+  config.webPort,
+  () => {
+    console.log(`Web dashboard listening on http://localhost:${config.webPort}`);
+  },
+);
+
 async function shutdown(signal: string): Promise<void> {
   console.log(`Received ${signal}; shutting down.`);
   monitor.stop();
   bot.stop(signal);
+  webServer.close();
   sqlite.close();
 }
 
