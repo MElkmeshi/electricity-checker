@@ -1,5 +1,10 @@
 function formatTime(date: Date): string {
-  return date.toISOString().replace("T", " ").replace(".000Z", " UTC");
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "Africa/Tripoli",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
 }
 
 export function formatStatus(isOn: boolean, checkedAt: Date): string {
