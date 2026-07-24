@@ -7,3 +7,4 @@ dist/
 .playwright-mcp/
 web/node_modules/
 web/dist/
+web/tsconfig.tsbuildinfo
