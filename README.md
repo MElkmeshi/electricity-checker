@@ -15,8 +15,8 @@ It also serves a one-page React dashboard (`web/`) on `WEB_PORT` showing the cur
 ## Requirements
 
 - Node.js 20 or newer
-- A Telegram bot token from BotFather
-- Your numeric Telegram chat ID
+- A Telegram bot token from BotFather (optional)
+- Your numeric Telegram chat ID (optional)
 - A UISP API token and the device UUID you want to watch
 
 ## Setup
@@ -38,6 +38,12 @@ DATABASE_PATH=./data/electricity.db
 POLL_INTERVAL_MS=60000
 WEB_PORT=3000
 ```
+
+`TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are optional, but must be set
+together. Leave both out to run dashboard-only: the monitor still polls and
+records transitions, it just sends no notifications and exposes no bot
+commands. Use that when a second instance would otherwise fight the first one
+over the same bot token.
 
 The UISP token is sent as the `x-auth-token` header on `GET
 {UISP_API_URL}/devices/{UISP_DEVICE_ID}`. Create it in UISP under Settings →

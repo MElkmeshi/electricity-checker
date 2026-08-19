@@ -22,7 +22,8 @@ sqlite.pragma("journal_mode = WAL");
 const repository = new ElectricityRepository(drizzle(sqlite));
 repository.initialize();
 
-const bot = new Telegraf(config.telegramBotToken);
+const telegram = config.telegram;
+const bot = telegram ? new Telegraf(telegram.botToken) : undefined;
 const client = new UispClient(
   config.uispApiUrl,
   config.uispDeviceId,
@@ -32,38 +33,42 @@ const monitor = new ElectricityMonitor(
   client,
   repository,
   async (isOn, observedAt) => {
+    if (!bot || !telegram) return;
     await bot.telegram.sendMessage(
-      config.telegramChatId,
+      telegram.chatId,
       formatTransition(isOn, observedAt),
     );
   },
 );
 
-function isAuthorized(chatId: number | undefined): boolean {
-  return chatId !== undefined && String(chatId) === config.telegramChatId;
+if (bot && telegram) {
+  const isAuthorized = (chatId: number | undefined): boolean =>
+    chatId !== undefined && String(chatId) === telegram.chatId;
+
+  bot.start(async (context) => {
+    if (!isAuthorized(context.chat?.id)) return;
+    await context.reply(
+      "Electricity checker is running. Send /status for the live status.",
+    );
+  });
+
+  bot.command("status", async (context) => {
+    if (!isAuthorized(context.chat?.id)) return;
+    try {
+      const status = await monitor.getStatus();
+      await context.reply(formatStatus(status.isOn, status.checkedAt));
+    } catch (error) {
+      console.error("Status command failed:", error);
+      await context.reply("⚠️ Could not check electricity status right now.");
+    }
+  });
+
+  bot.catch((error) => {
+    console.error("Telegram bot error:", error);
+  });
+} else {
+  console.log("No Telegram credentials configured; running dashboard only.");
 }
-
-bot.start(async (context) => {
-  if (!isAuthorized(context.chat?.id)) return;
-  await context.reply(
-    "Electricity checker is running. Send /status for the live status.",
-  );
-});
-
-bot.command("status", async (context) => {
-  if (!isAuthorized(context.chat?.id)) return;
-  try {
-    const status = await monitor.getStatus();
-    await context.reply(formatStatus(status.isOn, status.checkedAt));
-  } catch (error) {
-    console.error("Status command failed:", error);
-    await context.reply("⚠️ Could not check electricity status right now.");
-  }
-});
-
-bot.catch((error) => {
-  console.error("Telegram bot error:", error);
-});
 
 const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../web/dist");
 const webServer = createApi({ repository, monitor, webRoot }).listen(
@@ -76,7 +81,7 @@ const webServer = createApi({ repository, monitor, webRoot }).listen(
 async function shutdown(signal: string): Promise<void> {
   console.log(`Received ${signal}; shutting down.`);
   monitor.stop();
-  bot.stop(signal);
+  bot?.stop(signal);
   webServer.close();
   sqlite.close();
 }
@@ -84,7 +89,11 @@ async function shutdown(signal: string): Promise<void> {
 process.once("SIGINT", () => void shutdown("SIGINT"));
 process.once("SIGTERM", () => void shutdown("SIGTERM"));
 
-console.log("Starting Telegram bot and electricity monitor.");
+console.log(
+  bot
+    ? "Starting Telegram bot and electricity monitor."
+    : "Starting electricity monitor.",
+);
 await startApplication(bot, monitor, config.pollIntervalMs, (error) => {
   console.error("Electricity check failed:", error);
 });

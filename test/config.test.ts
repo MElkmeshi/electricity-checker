@@ -11,8 +11,7 @@ const validEnv = {
 describe("loadConfig", () => {
   it("loads required values and defaults", () => {
     expect(loadConfig(validEnv)).toEqual({
-      telegramBotToken: "123:abc",
-      telegramChatId: "456",
+      telegram: { botToken: "123:abc", chatId: "456" },
       uispApiUrl: "https://uisp.hajat.com.ly/nms/api/v2.1",
       uispDeviceId: "device-uuid",
       uispAuthToken: "auth-token",
@@ -22,8 +21,17 @@ describe("loadConfig", () => {
     });
   });
 
-  it("rejects missing Telegram configuration", () => {
-    expect(() => loadConfig({})).toThrow(/TELEGRAM_BOT_TOKEN/);
+  it("omits Telegram when neither credential is set", () => {
+    const { TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, ...withoutTelegram } =
+      validEnv;
+    expect(loadConfig(withoutTelegram).telegram).toBeUndefined();
+  });
+
+  it.each([
+    ["TELEGRAM_CHAT_ID", { ...validEnv, TELEGRAM_CHAT_ID: undefined }],
+    ["TELEGRAM_BOT_TOKEN", { ...validEnv, TELEGRAM_BOT_TOKEN: undefined }],
+  ])("rejects Telegram configuration missing %s", (_label, environment) => {
+    expect(() => loadConfig(environment)).toThrow(/set together/);
   });
 
   it("rejects missing UISP credentials", () => {

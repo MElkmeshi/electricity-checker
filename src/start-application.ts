@@ -7,11 +7,11 @@ export interface StartableMonitor {
 }
 
 export async function startApplication(
-  bot: LaunchableBot,
+  bot: LaunchableBot | undefined,
   monitor: StartableMonitor,
   intervalMs: number,
   onMonitorError: (error: unknown) => void,
 ): Promise<void> {
   monitor.start(intervalMs, onMonitorError);
-  await bot.launch();
+  await bot?.launch();
 }
