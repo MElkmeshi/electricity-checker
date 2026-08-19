@@ -26,7 +26,7 @@ export function App() {
       {data && <Dashboard data={data} now={now} />}
 
       <footer className="foot">
-        <span>Alkafaa feed · polled every minute</span>
+        <span>UISP device feed · polled every minute</span>
         <span>Africa/Tripoli</span>
       </footer>
     </div>

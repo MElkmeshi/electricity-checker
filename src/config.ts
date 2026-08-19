@@ -3,14 +3,9 @@ import { z } from "zod";
 const environmentSchema = z.object({
   TELEGRAM_BOT_TOKEN: z.string().min(1),
   TELEGRAM_CHAT_ID: z.string().regex(/^-?\d+$/),
-  ALKAFAA_API_URL: z
-    .url()
-    .default("http://my.alkafaa.net/user/api/index.php/api/service"),
-  ALKAFAA_LOGIN_URL: z
-    .url()
-    .default("http://my.alkafaa.net/user/api/index.php/api/auth/login"),
-  ALKAFAA_USERNAME: z.string().min(1),
-  ALKAFAA_PASSWORD: z.string().min(1),
+  UISP_API_URL: z.url().default("https://uisp.hajat.com.ly/nms/api/v2.1"),
+  UISP_DEVICE_ID: z.string().min(1),
+  UISP_AUTH_TOKEN: z.string().min(1),
   DATABASE_PATH: z.string().min(1).default("./data/electricity.db"),
   POLL_INTERVAL_MS: z.coerce.number().int().min(1_000).default(60_000),
   WEB_PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
@@ -19,10 +14,9 @@ const environmentSchema = z.object({
 export interface AppConfig {
   telegramBotToken: string;
   telegramChatId: string;
-  alkafaaApiUrl: string;
-  alkafaaLoginUrl: string;
-  alkafaaUsername: string;
-  alkafaaPassword: string;
+  uispApiUrl: string;
+  uispDeviceId: string;
+  uispAuthToken: string;
   databasePath: string;
   pollIntervalMs: number;
   webPort: number;
@@ -35,10 +29,9 @@ export function loadConfig(
   return {
     telegramBotToken: values.TELEGRAM_BOT_TOKEN,
     telegramChatId: values.TELEGRAM_CHAT_ID,
-    alkafaaApiUrl: values.ALKAFAA_API_URL,
-    alkafaaLoginUrl: values.ALKAFAA_LOGIN_URL,
-    alkafaaUsername: values.ALKAFAA_USERNAME,
-    alkafaaPassword: values.ALKAFAA_PASSWORD,
+    uispApiUrl: values.UISP_API_URL,
+    uispDeviceId: values.UISP_DEVICE_ID,
+    uispAuthToken: values.UISP_AUTH_TOKEN,
     databasePath: values.DATABASE_PATH,
     pollIntervalMs: values.POLL_INTERVAL_MS,
     webPort: values.WEB_PORT,

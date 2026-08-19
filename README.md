@@ -1,9 +1,12 @@
 # Electricity Checker Telegram Bot
 
-This bot checks `data.status` from the Alkafaa service every minute:
+This bot checks the UISP device `overview.status` every minute:
 
-- `true` means electricity is **ON**
-- `false` means electricity is **OFF**
+- `active` means electricity is **ON**
+- anything else (`disconnected`, `unauthorized`, …) means electricity is **OFF**
+
+The device sits at the monitored site, so it only answers UISP while it has
+power.
 
 It saves the first observed state and every later transition to SQLite. It sends a Telegram notification only when the state changes. The `/status` command performs a fresh API check.
 
@@ -14,7 +17,7 @@ It also serves a one-page React dashboard (`web/`) on `WEB_PORT` showing the cur
 - Node.js 20 or newer
 - A Telegram bot token from BotFather
 - Your numeric Telegram chat ID
-- Your Alkafaa username and password
+- A UISP API token and the device UUID you want to watch
 
 ## Setup
 
@@ -28,16 +31,17 @@ Edit `.env`:
 ```dotenv
 TELEGRAM_BOT_TOKEN=your-telegram-bot-token
 TELEGRAM_CHAT_ID=your-numeric-chat-id
-ALKAFAA_API_URL=http://my.alkafaa.net/user/api/index.php/api/service
-ALKAFAA_LOGIN_URL=http://my.alkafaa.net/user/api/index.php/api/auth/login
-ALKAFAA_USERNAME=your-alkafaa-username
-ALKAFAA_PASSWORD=your-alkafaa-password
+UISP_API_URL=https://uisp.hajat.com.ly/nms/api/v2.1
+UISP_DEVICE_ID=your-device-uuid
+UISP_AUTH_TOKEN=your-uisp-api-token
 DATABASE_PATH=./data/electricity.db
 POLL_INTERVAL_MS=60000
 WEB_PORT=3000
 ```
 
-The bot reproduces the website's CryptoJS AES encryption to create a fresh login payload from the username and password. It keeps the returned token in memory and logs in again if the service responds with HTTP 401 or 403. Keep `.env` private.
+The UISP token is sent as the `x-auth-token` header on `GET
+{UISP_API_URL}/devices/{UISP_DEVICE_ID}`. Create it in UISP under Settings →
+Users → API tokens. Keep `.env` private.
 
 ## Run
 
@@ -71,7 +75,7 @@ npm run typecheck
 
 ## Layout
 
-- `src/` — Telegram bot, Alkafaa client, SQLite repository
+- `src/` — Telegram bot, UISP client, SQLite repository
 - `src/timeline.ts` — turns transitions into segments and uptime stats
 - `src/api/server.ts` — Express API plus static hosting for the dashboard
 - `web/` — Vite + React + React Query single-page dashboard

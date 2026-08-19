@@ -5,13 +5,13 @@ import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { Telegraf } from "telegraf";
-import { AlkafaaClient } from "./alkafaa-client.js";
 import { createApi } from "./api/server.js";
 import { loadConfig } from "./config.js";
 import { ElectricityRepository } from "./db/repository.js";
 import { formatStatus, formatTransition } from "./messages.js";
 import { ElectricityMonitor } from "./monitor.js";
 import { startApplication } from "./start-application.js";
+import { UispClient } from "./uisp-client.js";
 
 const config = loadConfig(process.env);
 const databasePath = resolve(config.databasePath);
@@ -23,11 +23,10 @@ const repository = new ElectricityRepository(drizzle(sqlite));
 repository.initialize();
 
 const bot = new Telegraf(config.telegramBotToken);
-const client = new AlkafaaClient(
-  config.alkafaaApiUrl,
-  config.alkafaaLoginUrl,
-  config.alkafaaUsername,
-  config.alkafaaPassword,
+const client = new UispClient(
+  config.uispApiUrl,
+  config.uispDeviceId,
+  config.uispAuthToken,
 );
 const monitor = new ElectricityMonitor(
   client,
